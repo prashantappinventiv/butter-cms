@@ -2,7 +2,9 @@ import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
 import expressLayouts from 'express-ejs-layouts';
+// import dotenv from 'dotenv'
 import Butter from 'buttercms';
+import axios from 'axios'
 import { renderLandingPage } from './utils/functions.js';
 
 dotenv.config();
@@ -161,7 +163,7 @@ app.get('/blog/category/:slug', async (req, res) => {
       type: 'blog',
       API: false,
     });
-    return;
+    return;Request
   }
 
   const categories = req.categories.data.data;
@@ -224,8 +226,24 @@ app.get('/:pageType/:slug', (req, res) => {
   renderLandingPage(req, res, butter);
 });
 
+app.get('/fetch-details', async (req, res) => {
+  const butterApiKey=process.env.EXPRESS_BUTTER_CMS_API_KEY;
+  console.log("butter api key",butterApiKey)
+  const url = `https://api.buttercms.com/v2/pages/landing-page/landing-page-with-components/?auth_token=${butterApiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    const landingPageData = response.data.data;
+    console.log("Landing Page Data:", JSON.stringify(landingPageData, null, 2));
+    res.json(landingPageData);
+  } catch (error) {
+    console.error('Error fetching landing page data:', error);
+    res.status(500).render('404', { layout: false, type: '404' });
+  }
+});
+
+
 app.get('*', (_, res) => {
   res.render('404', { layout: false, type: '404' });
 });
-
 app.listen(PORT);
